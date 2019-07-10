@@ -1,11 +1,12 @@
 Package: Qforest
 Type: Package
-Title: Simulating Swedish forest organic matter stocks
+Title: Simulating Swedish forest organic matter stocks based on Q and aboveground empirical functions
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <lorenzo.menichetti@slu.se>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Lorenzo Menichetti
+Maintainer: <lorenzo.menichetti@slu.se>
+Description: This package contains the functions used for the Swedish forest inventories
+    it calculates C stocks based on empirical allometric functions and it then calculates the decay of all organic C (OC) based on the Q decay model
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 6.1.1

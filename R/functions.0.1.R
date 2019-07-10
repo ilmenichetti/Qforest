@@ -4,23 +4,28 @@
 # declaring the parameters needed for the simulations
 # all the more interesting parameters are kept in a separate data frame
 # to offer flexibility in the calibration
-parameters<-data.frame(  
-  
+# this data frame can be overwritten when using the package
+#
+# Roxygen documentation starting here
+#' Just a data frame with the model parameters.
+#'
+parameters<-data.frame(
+
   #fine root:needle litter
   FRNL=1,
-  
+
   #fine root:needle biomass
   FRNB=0.33,
-  
+
   #C content average
   fc=0.5,
-  
+
   #parameters for the Q decomposition model
   beta=7,
   eta_11=0.36,
   q0=1,
   e0=0.25,
-  
+
   #time to colonize different litter types
   tmax_b=1, #for needles and roots
   tmax_g=13, #for branches
@@ -28,16 +33,30 @@ parameters<-data.frame(
   tmax_stmp=34, #for stumps
   tmax_r1=20, # for roots >5 cm
   tmax_r2=13 #for roots <5 cm
-  
-  
+
+
 )
 
 
 
 
 #main function for management plan selection
+
+# Roxygen documentation starting here
+#' The function for determining the appropriate management plan.
+#'
+#' @description
+#' The management.plan functions contains a series of vectors with management data from Sweden.
+#' It selects the most appropriate values based on site index and latitude, and determines the
+#' values for the management plan.
+#'
+#' @param SI The site index.
+#' @param Lat The latitude of the simulated site.
+#' @return a data frame with site selection ID for the other functions of the package, diameter at breast height T., and ages of the four thinnings
+#'
+
 management.plan<-function(SI, Lat){
-  
+
 ### Self-contained declaration of matrices for the management plans
 # this is in order to skip the reading of the specific csv and make the function more general
 
@@ -64,7 +83,7 @@ ID<-((SI-10)/2)+1
 
 ### Select the values from the specific site
 
-#Year when start diameter at breast hight is measured  
+#Year when start diameter at breast hight is measured
 T.=H0[ID]#was T
 
 
@@ -88,11 +107,30 @@ thinnings<-data.frame(g1, g2, g3, g4, gm)
 }
 
 
-
+# Roxygen documentation starting here
+#' Simulating the aboveground development of the stand.
+#'
+#' @description
+#' The Sim.aboveground function simulats the development of the stand concerning the aboveground biomass.
+#' It contains vectors with information from Swedish sites, and selects the correct value from these vectors
+#' based on the site ID from \code{\link{management.plan}}
+#'
+#' @param SI The site index.
+#' @param Lat The latitude of the simulated site.
+#' @param management.plan output from from \code{\link{management.plan}}
+#'
+#' @return a data frame with \itemize{
+#'   \item development of basal area
+#'   \item basal area under bark
+#'   \item number of trees
+#'   \item mean diameter of trees
+#'  }
+#' for each year of the simulation
+#'
 
 #main function for basal area simulation
 Sim.aboveground<-function(SI, Lat, management.plan){
-  
+
 ### Self-contained declaration of matrices for the management plans
 # this is in order to skip the reading of the specific csv and make the function more general
 
@@ -130,11 +168,11 @@ d<-c()
 
 ### Select the values from the specific site
 
-#Year when start diameter at breast hight is measured  
+#Year when start diameter at breast hight is measured
 T.=management.plan$T.#was T
 
-#Number of trees at start year 
-N[1]=N0[ID] 
+#Number of trees at start year
+N[1]=N0[ID]
 
 #Year of final felling
 gm=management.plan$gm
@@ -159,9 +197,9 @@ if(Lat>60){
   }else{
   HN<-1.3+An*(1-exp(-(0.042624-7.1145*(10^-5)*(10*An)^1.0068)*(time-T.)))^(1/(1-0.15933-3.7*10^-6*(10*An)^-3.156))
   }
- return(HN) 
+ return(HN)
 }
-  
+
 
 ######Basal area development
 
@@ -170,7 +208,7 @@ if(Lat>60){
 ########################
 BA[T.-1]<-N[1]*10*10^-4
 #initial basal area at first thinning
-BA[g1]<-BA0[ID] 
+BA[g1]<-BA0[ID]
 #Relative growth rate
 k_BA<-log(BA[g1]/BA[T.-1])*(1/(g1-T.+1)) #considers the first thinning
 
@@ -179,7 +217,7 @@ k_BA<-log(BA[g1]/BA[T.-1])*(1/(g1-T.+1)) #considers the first thinning
 timestep_1<-seq(from=T., to=g1)
 BA[timestep_1]<-BA[T.-1]*exp(k_BA*(timestep_1-T.+1))
 #Number of trees
-N[timestep_1]<-N[1] 
+N[timestep_1]<-N[1]
 #Recalculation of basal area over bark to basal area under bark
 BAu[g1]<-s1*BA[g1]*(1+0.4508*((sqrt((100*BA[g1])/(pi*N[g1])))^(-b[ID]))*BA[g1]^-0.281*(g1-1-T.)^0.125)^-1
 #Basal area at first thinning
@@ -209,7 +247,7 @@ N[g2]<-N[g2]*s1
 ################################################
 ## Basal area increment from second to third thinning
 timestep_2<-seq(from=g2+1, to=g3)
-N[timestep_2]<-N[g2] 
+N[timestep_2]<-N[g2]
 
 #loop for area under the bark, between thinning 1 and thinning 2
 for(i in 1:(length(timestep_2))){
@@ -228,7 +266,7 @@ N[g3]<-N[g3]*s1
 ################################################
 ## Basal area increment from third to fourth thinning
 timestep_3<-seq(from=g3+1, to=g4)
-N[timestep_3]<-N[g3] 
+N[timestep_3]<-N[g3]
 
 #loop for area under the bark, between thinning 1 and thinning 2
 for(i in 1:(length(timestep_3))){
@@ -249,7 +287,7 @@ N[g4]<-N[g4]*s1
 ################################################
 ## Basal area increment from fourth thinning to final felling
 timestep_4<-seq(from=g4+1, to=gm)
-N[timestep_4]<-N[g4] 
+N[timestep_4]<-N[g4]
 
 #loop for area under the bark, between thinning 1 and thinning 2
 for(i in 1:(length(timestep_4))){
@@ -269,7 +307,29 @@ return(sim)
 
 
 ### main function for carbon partitioning
-#Note: contains some parameters that should be included in the uncertainty estimation
+# Roxygen documentation starting here
+#' Simulating how the carbon is partitioned
+#'
+#' @description
+#' The C.partitioning function describes how the carbon is partitioned in the stand, based on the model
+#' parameter matrix from \code{\link{parameters}} and on the results from \code{\link{Sim.aboveground}}
+#'
+#' @param parameters The parameter matrix from \code{\link{parameters}}
+#' @param AG.simulation output from from \code{\link{Sim.aboveground}}
+#'
+#' @return a data frame with #' \itemize{
+#'   \item C in needles
+#'   \item C in branches
+#'   \item C in stem V
+#'   \item C in stem B
+#'   \item C in fine roots
+#'   \item C in roots (>5 cm)
+#'   \item C in roots (<5 cm)
+#'   \item C in stumps
+#' }
+#' for each year of the simulation
+#'
+
 C.partitioning<-function(AG.simulation, parameters){
 
   #fine root:needle litter
@@ -277,67 +337,108 @@ C.partitioning<-function(AG.simulation, parameters){
 
   #fine root:needle biomass
   FRNB=parameters$FRNB
-  
+
   #C content average
   fc=parameters$fc
-  
+
   Needles<-fc*AG.simulation$N*exp(-1.9602+7.8171*(AG.simulation$d/(AG.simulation$d+12)))
-  
+
   Branches<-fc*AG.simulation$N*exp(-1.2804+8.5242*(AG.simulation$d/(AG.simulation$d+13)))-Needles
-  
+
   StemV<-fc*AG.simulation$N*exp(-2.2471+11.4873*(AG.simulation$d/(AG.simulation$d+14)))
   StemB<-fc*AG.simulation$N*exp(-3.3912+9.8364*(AG.simulation$d/(AG.simulation$d+15)))
-  
+
   Stump<-fc*AG.simulation$N*exp(-3.3645+10.6685*(AG.simulation$d/(AG.simulation$d+17)))
-  
+
   Fine.root<-FRNB*Needles
-  
+
   #Root >5cm
   Root.above.5cm<-fc*AG.simulation$N*exp(-6.3851+13.3703*(AG.simulation$d/(AG.simulation$d+8)))
   #Root <5cm
   Root.below.5cm<-1.11*fc*AG.simulation$N*exp(-2.5706+7.6283*(AG.simulation$d/(AG.simulation$d+12)))
-  
+
   results<-data.frame(Needles, Branches, StemV, StemB, Fine.root, Root.above.5cm, Root.below.5cm,Stump)
   return(results)
-  
-  }
 
-
-
-
-## main function for litter production
-#Note: contains some parameters that should be included in the uncertainty estimation
-Litter.production<-function(C.partitions, Lat, parameters){
-  
-  FRNL=parameters$FRNL
-  
-  f_needles=0.489-0.0063*Lat  
-  fb_needles=0.514-0.0067*Lat
-  f_branches=0.2*f_needles
-  
-  #needles and fine root litter
-  # was "Fneedlfr" in the original Mathcad file
-  Litter_fine.roots.needles<-f_needles*C.partitions$Needles*(1+FRNL)
-  
-  
-  #branch litter
-  # was "Fbranches" in the original Mathcad file
-  Litter_branches<-f_branches*C.partitions$Branches
-  
-  results<-data.frame(Litter_fine.roots.needles, Litter_branches)
-  return(results)
-  
-  
   }
 
 
 
 
 ### main function for carbon partitioning
+# Roxygen documentation starting here
+#' Simulating the litter production from C partitions
+#'
+#' @description
+#' The Litter.production function describes the litter production based on the model
+#' parameter matrix from \code{\link{parameters}} and on the results from \code{\link{C.partitioning}}
+#'
+#' @param parameters The parameter matrix from \code{\link{parameters}}
+#' @param Lat The latitude of the simulated site.
+#' @param C.partitions output from from \code{\link{C.partitioning}}
+#'
+#' @return a data frame with #' \itemize{
+#'   \item C litter from fine roots
+#'   \item C litter from branches
+#' }
+#' for each year of the simulation
+#'
+
+## main function for litter production
 #Note: contains some parameters that should be included in the uncertainty estimation
-#in particular the harvest management plan
+Litter.production<-function(C.partitions, Lat, parameters){
+
+  FRNL=parameters$FRNL
+
+  f_needles=0.489-0.0063*Lat
+  fb_needles=0.514-0.0067*Lat
+  f_branches=0.2*f_needles
+
+  #needles and fine root litter
+  # was "Fneedlfr" in the original Mathcad file
+  Litter_fine.roots.needles<-f_needles*C.partitions$Needles*(1+FRNL)
+
+
+  #branch litter
+  # was "Fbranches" in the original Mathcad file
+  Litter_branches<-f_branches*C.partitions$Branches
+
+  results<-data.frame(Litter_fine.roots.needles, Litter_branches)
+  return(results)
+
+
+  }
+
+
+
+
+### harvest residuals functions
+# Roxygen documentation starting here
+#' Simulating the harvest residuals from the C partitions
+#'
+#' @description
+#' The Harvest.residuals function describes the litter production based on the model
+#' parameter matrix from \code{\link{parameters}} and on the results from \code{\link{C.partitioning}}
+#'
+#' @param parameters The parameter matrix from \code{\link{parameters}}
+#' @param management.plan output from from \code{\link{management.plan}}
+#' @param C.partitions output from from \code{\link{C.partitioning}}
+#'
+#' @return a data frame with #' \itemize{
+#'   \item C !!! to be defined better
+#'   \item C !!! to be defined better
+#'   \item C !!! to be defined better
+#'   \item C !!! to be defined better
+#'   \item C !!! to be defined better
+#'   \item C !!! to be defined better
+#'   \item C !!! to be defined better
+#'   \item C !!! to be defined better
+#' }
+#' for each year of the simulation
+#'
+
 Harvest.residuals<-function(C.partitions, management.plan, parameters){
-  
+
   #residuals left at the site after harvesting
   # this needs to be modified depending on the residual management plan
   u1_needles=1
@@ -346,21 +447,21 @@ Harvest.residuals<-function(C.partitions, management.plan, parameters){
   u1_root2=1
   u1_stump=1
   u1_stem=1
-  
+
   u2_needles=1
   u2_branches=1
   u2_root1=1
   u2_root2=1
   u2_stump=1
   u2_stem=1
-  
+
   u3_needles=1
   u3_branches=1
   u3_root1=1
   u3_root2=1
   u3_stump=1
   u3_stem=1
-  
+
   u4_needles=1
   u4_branches=1
   u4_root1=1
@@ -374,14 +475,14 @@ Harvest.residuals<-function(C.partitions, management.plan, parameters){
   ugm_root2=1
   ugm_stump=1
   ugm_stem=1
-  
+
   #thinnings
   g1<-management.plan$g1
   g2<-management.plan$g2
   g3<-management.plan$g3
   g4<-management.plan$g4
   gm<-management.plan$gm
-  
+
   #declaring open vectors
   Gneedl<-c()
   Gbranches<-c()
@@ -390,7 +491,7 @@ Harvest.residuals<-function(C.partitions, management.plan, parameters){
   Groot2<-c()
   GstemB<-c()
   Gstump<-c()
-  
+
   #first thinning
   timestep1<-seq(from=management.plan$T., to=g1-1)
   Gneedl[g1]=u1_needles*(1+parameters$FRNB)*(C.partitions$Needles[g1-1]-C.partitions$Needles[g1])
@@ -400,7 +501,7 @@ Harvest.residuals<-function(C.partitions, management.plan, parameters){
   Groot2[g1]=u1_root2*(C.partitions$Root.below.5cm[g1-1]-C.partitions$Root.below.5cm[g1])
   GstemB[g1]=u1_stem*(C.partitions$StemB[g1-1]-C.partitions$StemB[g1])
   Gstump[g1]=u1_stump*(C.partitions$Stump[g1-1]-C.partitions$Stump[g1])
-  
+
   #second thinning
   timestep2<-seq(from=g1+1, to=g2-1)
   Gneedl[g2]=u2_needles*(1+parameters$FRNB)*(C.partitions$Needles[g2-1]-C.partitions$Needles[g2])
@@ -410,7 +511,7 @@ Harvest.residuals<-function(C.partitions, management.plan, parameters){
   Groot2[g2]=u2_root2*(C.partitions$Root.below.5cm[g2-1]-C.partitions$Root.below.5cm[g2])
   GstemB[g2]=u2_stem*(C.partitions$StemB[g2-1]-C.partitions$StemB[g2])
   Gstump[g2]=u2_stump*(C.partitions$Stump[g2-1]-C.partitions$Stump[g2])
-  
+
   #third thinning
   timestep3<-seq(from=g2+1, to=g3-1)
   Gneedl[g3]=u3_needles*(1+parameters$FRNB)*(C.partitions$Needles[g3-1]-C.partitions$Needles[g3])
@@ -420,7 +521,7 @@ Harvest.residuals<-function(C.partitions, management.plan, parameters){
   Groot2[g3]=u3_root2*(C.partitions$Root.below.5cm[g3-1]-C.partitions$Root.below.5cm[g3])
   GstemB[g3]=u3_stem*(C.partitions$StemB[g3-1]-C.partitions$StemB[g3])
   Gstump[g3]=u3_stump*(C.partitions$Stump[g3-1]-C.partitions$Stump[g3])
-  
+
   #fourth thinning
   timestep4<-seq(from=g3+1, to=g4-1)
   Gneedl[g4]=u4_needles*(1+parameters$FRNB)*(C.partitions$Needles[g4-1]-C.partitions$Needles[g4])
@@ -430,8 +531,8 @@ Harvest.residuals<-function(C.partitions, management.plan, parameters){
   Groot2[g4]=u4_root2*(C.partitions$Root.below.5cm[g4-1]-C.partitions$Root.below.5cm[g4])
   GstemB[g4]=u4_stem*(C.partitions$StemB[g4-1]-C.partitions$StemB[g4])
   Gstump[g4]=u4_stump*(C.partitions$Stump[g4-1]-C.partitions$Stump[g4])
-  
-  #final felling 
+
+  #final felling
   timestep5<-seq(from=g4+1, to=gm-1)
   Gneedl[gm]=ugm_needles*(1+parameters$FRNB)*(C.partitions$Needles[gm])
   Gbranches[gm]=ugm_branches*(C.partitions$Branches[gm])
@@ -441,7 +542,7 @@ Harvest.residuals<-function(C.partitions, management.plan, parameters){
   GstemB[gm]=ugm_stem*(C.partitions$StemB[gm])
   Gstump[gm]=ugm_stump*(C.partitions$Stump[gm])
 
-  #Left at site at harvesting at the end of the rotation period 
+  #Left at site at harvesting at the end of the rotation period
   Gneedl[gm-1]=0
   Gbranches[gm-1]=0
   GstemV[gm-1]=0
@@ -449,8 +550,8 @@ Harvest.residuals<-function(C.partitions, management.plan, parameters){
   Groot2[gm-1]=0
   GstemB[gm-1]=0
   Gstump[gm-1]=0
-  
-  #Left at site at harvesting at the start of the rotation period 
+
+  #Left at site at harvesting at the start of the rotation period
   Gneedl[1]=Gneedl[gm]
   Gbranches[1]=Gbranches[gm]
   GstemV[1]=GstemV[gm]
@@ -458,60 +559,74 @@ Harvest.residuals<-function(C.partitions, management.plan, parameters){
   Groot2[1]=Groot2[gm]
   GstemB[1]=GstemB[gm]
   Gstump[1]=Gstump[gm]
-  
+
   Groot.above.5cm<-Groot1
   Groot.below.5cm<-Groot2
   Gneedles<-Gneedl
-  
+
   results<-data.frame(Gneedles, Gbranches, GstemV, GstemB, Groot.above.5cm, Groot.below.5cm, Gstump)
   return(results)
-  
-  }
 
+  }
 
 
 
 
 # defining the decomposition function to be used in all the following calculations
 # the function is based on the Q system of assumptions, and it is used to calculate G (remaining mass)
+# Roxygen documentation starting here
+#' The core function for simulating the decay of OM
+#'
+#' @description
+#' The Remaining.OM function simulates the organic matter decay. It is the core function for organic matter kinetic,
+#' to be used in the simulations in another function
+#'
+#' @param parameters The parameter matrix from \code{\link{parameters}}
+#' @param Lat The latitude of the simulated site.
+#' @param tmax last harvest (??? to be checked...)
+#' @param timestep time steps for the simulation
+#'
+#' @return "G", the fraction of OM remaining (??? to be checked...)
+#'
+
 Remaining.OM<-function(Lat, parameters, tmax, timestep){
-  
+
   # calculating microbial efficiency based on latitude
   u0=(0.0855+0.0157*(50.6-0.768*Lat))
-  
+
   beta=parameters$beta
   eta_11=parameters$eta_11
   q0=parameters$q0
   e0=parameters$e0
 
   fc=parameters$fc
-  
+
   # #Fraction of litter colonised, function internal to the decomposition module
   # A<-function(timesetp, tmax){
   #   for(i in 1:length(timestep)){
   #     if(timestep[i]<tmax){
-  #       A[i]=1-(1-(timestep/tmax)^2)} else 
+  #       A[i]=1-(1-(timestep/tmax)^2)} else
   #       {A[i]=1}
   #     }
   #   return(A)
   #   }
-  # 
+  #
   # #rate of fraction colonised, function internal to the decomposition module
   # dA<-function(timestep, tmax){
   #   for(i in 1:length(timestep)){
   #     if(timestep[i]<tmax){
-  #       dA[i]=((2/tmax)*(1-(timestep/tmax)^2))/(1+(1/tmax))} else 
+  #       dA[i]=((2/tmax)*(1-(timestep/tmax)^2))/(1+(1/tmax))} else
   #       {dA[i]=0}
   #     }
   #   return(dA)
   #   }
-  # 
-  
+  #
+
   #to simplify the following equations
   alpha=fc*beta*eta_11*u0*q0^beta
-  
+
   zeta=(1-e0)/(beta*eta_11*e0)
-  
+
   G<-c()
   #for loop running for each year (timestep vector)
   for (i in 1:length(timestep)){
@@ -525,14 +640,41 @@ Remaining.OM<-function(Lat, parameters, tmax, timestep){
     }
   }
   return(G)
-  
+
 }
 
 
 
 #remaining mass of all the cohorts
-Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timestep){
-  
+# Roxygen documentation starting here
+#' Simulating the OM decay of the stand.
+#'
+#' @description
+#' The Remaining.mass.OM function applies the function \code{\link{Remaining.OM}}
+#' on the results from \code{\link{Litter.production}} and from \code{\link{Harvest.residuals}}
+#' to simulate the decay of OM in the stand
+#'
+#' @param parameters The parameter matrix from \code{\link{parameters}}
+#' @param management.plan output from from \code{\link{management.plan}}
+#' @param Litter output from from \code{\link{Litter.production}}
+#' @param Harvest.residuals output from from \code{\link{Harvest.residuals}}
+#' @param timestep time steps for the simulation
+#'
+#' @return a data frame with #' \itemize{
+#'   \item FC needles (??? top be checked what it is exactly)
+#'   \item FC branches (??? top be checked what it is exactly)
+#'   \item GC needles (??? top be checked what it is exactly)
+#'   \item GC branches (??? top be checked what it is exactly)
+#'   \item GC stem V (??? top be checked what it is exactly)
+#'   \item GC stem B (??? top be checked what it is exactly)
+#'   \item GC stump (??? top be checked what it is exactly)
+#'   \item GC roots >5 cm (??? top be checked what it is exactly)
+#'   \item GC roots <5 cm (??? top be checked what it is exactly)
+#' }
+#' for each year of the simulation
+#'
+Remaining.mass.OM<-function(Litter, Harvest.residuals, Lat, parameters, timestep){
+
   #calculates the proportion of remaining C for a certain material
   Needles_fraction<-Remaining.OM(Lat, parameters, tmax=parameters$tmax_b, timestep)
   Branches_fraction<-Remaining.OM(Lat, parameters, tmax=parameters$tmax_g, timestep)
@@ -540,10 +682,10 @@ Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timeste
   Stump_fraction<-Remaining.OM(Lat, parameters, tmax=parameters$tmax_stmp, timestep)
   Root1_fraction<-Remaining.OM(Lat, parameters, tmax=parameters$tmax_r1, timestep)
   Root2_fraction<-Remaining.OM(Lat, parameters, tmax=parameters$tmax_r2, timestep)
-  
-  
+
+
 #### Soil C from litter inputs from treees
-  
+
   ### needles
   # approximate an integration numerically through a matrix
   # every year some C is added and decays according to the proportions calculated above
@@ -557,9 +699,9 @@ Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timeste
   # now calculate the marginal sum of the matrix
     FC_needles<-c()
     for(i in 1:length(timestep)){ # the loop produces a square matrix of size=length(timestep)
-      FC_needles[i]<-sum(FC_needles_matrix[i,], na.rm = T)  
+      FC_needles[i]<-sum(FC_needles_matrix[i,], na.rm = T)
     }
-    
+
   ### branches
   # approximate an integration numerically through a matrix
   # every year some C is added and decays according to the proportions calculated above
@@ -573,11 +715,11 @@ Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timeste
     # now calculate the marginal sum of the matrix
     FC_branches<-c()
     for(i in 1:length(timestep)){ # the loop produces a square matrix of size=length(timestep)
-      FC_branches[i]<-sum(FC_branches_matrix[i,], na.rm = T)  
+      FC_branches[i]<-sum(FC_branches_matrix[i,], na.rm = T)
     }
-    
+
 #### Soil C from harvesting residues
-    
+
     ### needles
     # approximate an integration numerically through a matrix
     # every year some C is added and decays according to the proportions calculated above
@@ -591,9 +733,9 @@ Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timeste
     # now calculate the marginal sum of the matrix
     GC_needles<-c()
     for(i in 1:length(timestep)){ # the loop produces a square matrix of size=length(timestep)
-      GC_needles[i]<-sum(GC_needles_matrix[i,], na.rm = T)  
+      GC_needles[i]<-sum(GC_needles_matrix[i,], na.rm = T)
     }
-    
+
     ### branches
     # approximate an integration numerically through a matrix
     # every year some C is added and decays according to the proportions calculated above
@@ -607,9 +749,9 @@ Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timeste
     # now calculate the marginal sum of the matrix
     GC_branches<-c()
     for(i in 1:length(timestep)){ # the loop produces a square matrix of size=length(timestep)
-      GC_branches[i]<-sum(GC_branches_matrix[i,], na.rm = T)  
+      GC_branches[i]<-sum(GC_branches_matrix[i,], na.rm = T)
     }
-    
+
     ### stemV
     # approximate an integration numerically through a matrix
     # every year some C is added and decays according to the proportions calculated above
@@ -623,9 +765,9 @@ Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timeste
     # now calculate the marginal sum of the matrix
     GC_stemV<-c()
     for(i in 1:length(timestep)){ # the loop produces a square matrix of size=length(timestep)
-      GC_stemV[i]<-sum(GC_stemV_matrix[i,], na.rm = T)  
+      GC_stemV[i]<-sum(GC_stemV_matrix[i,], na.rm = T)
     }
-    
+
     ### stemB
     # approximate an integration numerically through a matrix
     # every year some C is added and decays according to the proportions calculated above
@@ -639,9 +781,9 @@ Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timeste
     # now calculate the marginal sum of the matrix
     GC_stemB<-c()
     for(i in 1:length(timestep)){ # the loop produces a square matrix of size=length(timestep)
-      GC_stemB[i]<-sum(GC_stemB_matrix[i,], na.rm = T)  
+      GC_stemB[i]<-sum(GC_stemB_matrix[i,], na.rm = T)
     }
-    
+
     ### stump
     # approximate an integration numerically through a matrix
     # every year some C is added and decays according to the proportions calculated above
@@ -655,10 +797,10 @@ Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timeste
     # now calculate the marginal sum of the matrix
     GC_stump<-c()
     for(i in 1:length(timestep)){ # the loop produces a square matrix of size=length(timestep)
-      GC_stump[i]<-sum(GC_stump_matrix[i,], na.rm = T)  
+      GC_stump[i]<-sum(GC_stump_matrix[i,], na.rm = T)
     }
-    
-    
+
+
     ### root1
     # approximate an integration numerically through a matrix
     # every year some C is added and decays according to the proportions calculated above
@@ -672,9 +814,9 @@ Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timeste
     # now calculate the marginal sum of the matrix
     GC_root1<-c()
     for(i in 1:length(timestep)){ # the loop produces a square matrix of size=length(timestep)
-      GC_root1[i]<-sum(GC_root1_matrix[i,], na.rm = T)  
+      GC_root1[i]<-sum(GC_root1_matrix[i,], na.rm = T)
     }
-    
+
     ### root2
     # approximate an integration numerically through a matrix
     # every year some C is added and decays according to the proportions calculated above
@@ -688,11 +830,11 @@ Remaining.mass.OM<-function( Litter, Harvest.residuals, Lat, parameters, timeste
     # now calculate the marginal sum of the matrix
     GC_root2<-c()
     for(i in 1:length(timestep)){ # the loop produces a square matrix of size=length(timestep)
-      GC_root2[i]<-sum(GC_root2_matrix[i,], na.rm = T)  
+      GC_root2[i]<-sum(GC_root2_matrix[i,], na.rm = T)
     }
-    
+
     results<-data.frame(FC_needles, FC_branches, GC_needles, GC_branches, GC_stemV, GC_stemB, GC_stump, GC_root1, GC_root2)
-    
+
     return(results)
 }
 
