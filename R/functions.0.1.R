@@ -1,4 +1,6 @@
 
+###for documentation making: devtools::build_manual()
+
 
 
 # declaring the parameters needed for the simulations

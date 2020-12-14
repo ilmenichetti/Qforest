@@ -4,7 +4,9 @@
 \name{parameters}
 \alias{parameters}
 \title{Just a data frame with the model parameters.}
-\format{An object of class \code{data.frame} with 1 rows and 13 columns.}
+\format{
+An object of class \code{data.frame} with 1 rows and 13 columns.
+}
 \usage{
 parameters
 }
